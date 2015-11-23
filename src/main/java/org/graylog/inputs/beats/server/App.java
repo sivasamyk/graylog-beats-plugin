@@ -19,7 +19,7 @@ public class App
         };
         ServerConfiguration configuration = new ServerConfiguration();
         configuration.setIpAddress("0.0.0.0");
-        configuration.setPort(5043);
+        configuration.setPort(5044);
         configuration.setKeyStorePass("pass");
         configuration.setKeyPass("pass");
       //  configuration.setKeyStorePath("/path/to/store.jks");

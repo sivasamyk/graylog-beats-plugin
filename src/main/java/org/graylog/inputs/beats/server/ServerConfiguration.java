@@ -57,6 +57,6 @@ public class ServerConfiguration {
     }
 
     public boolean isSslEnabled() {
-        return keyStorePath != null;
+        return keyStorePath != null && !keyStorePath.trim().isEmpty();
     }
 }

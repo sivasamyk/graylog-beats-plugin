@@ -17,7 +17,7 @@ import javax.inject.Inject;
  */
 public class BeatsInput extends MessageInput {
 
-    private static final String NAME = "Logstash-forwarder Input";
+    private static final String NAME = "Beats";
 
     @AssistedInject
     public BeatsInput(MetricRegistry metricRegistry, @Assisted Configuration configuration,

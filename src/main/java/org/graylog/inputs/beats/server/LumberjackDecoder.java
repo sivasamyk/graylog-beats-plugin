@@ -82,6 +82,9 @@ public class LumberjackDecoder extends FrameDecoder {
         int jsonLength = (int) channelBuffer.readUnsignedInt();
         byte[] data = new byte[jsonLength];
         channelBuffer.readBytes(data);
+        if(LOGGER.isDebugEnabled()) {
+            LOGGER.debug(new String(data));
+        }
         Map<String, Object> map = objectMapper.readValue(data,new TypeReference<Map<String, Object>>(){});
         return new Event(map);
     }

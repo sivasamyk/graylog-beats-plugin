@@ -106,22 +106,21 @@ public class BeatsTransport implements Transport {
 
     /**
      * Sample File Beat JSON
-     * {
+     {
      "@metadata":{
      "beat":"filebeat",
      "type":"log"
      },
-     "@timestamp":"2015-11-17T19:17:12.966Z",
+     "@timestamp":"2015-11-23T17:44:54.829Z",
+     "beat":{
+     "hostname":"avis-vbox",
+     "name":"avis-vbox"
+     },
      "count":1,
      "fields":null,
-     "fileinfo":{
-
-     },
      "input_type":"log",
-     "line":7,
-     "message":"Sep 28 18:31:05 vagrant-ubuntu-trusty-64 sshd[1347]: pam_unix(sshd:session): session opened for user vagrant by (uid=0)",
-     "offset":603,
-     "shipper":"vagrant-ubuntu-trusty-64",
+     "message":"Nov 20 18:29:47 avis pkexec: pam_unix(polkit-1:session): session opened for user root by (uid=1000)",
+     "offset":0,
      "source":"/var/log/auth.log",
      "type":"log"
      }
@@ -130,9 +129,9 @@ public class BeatsTransport implements Transport {
     private Map<String,Object> parseFileBeat(Event event) {
         Map<String,Object> gelfMessage = new LinkedHashMap<>();
         gelfMessage.put("version", "1.1");
-        gelfMessage.put("host",event.getEventData().remove("shipper"));
-        gelfMessage.put("file",event.getEventData().remove("source"));
-        gelfMessage.put("short_message", event.getEventData().remove("message"));
+        gelfMessage.put("host",((Map<String,Object>)event.getEventData().get("beat")).get("hostname"));
+        gelfMessage.put("file",event.getEventData().get("source"));
+        gelfMessage.put("short_message", event.getEventData().get("message"));
         Map<String,Object> fields = (Map<String,Object>)event.getEventData().get("fields");
         if(fields != null) {
             gelfMessage.putAll(fields);
@@ -166,22 +165,6 @@ public class BeatsTransport implements Transport {
         @Override
         public ConfigurationRequest getRequestedConfiguration() {
             final ConfigurationRequest cr = new ConfigurationRequest();
-            cr.addField(new TextField(CK_KEYSTORE_PATH,
-                    "Keystore Path",
-                    "",
-                    "Absolute path of JKS keystore"));
-            cr.addField(new TextField(CK_KEYSTORE_PASSWORD,
-                    "Keystore Password",
-                    "",
-                    "-deststorepass argument in keytool",
-                    ConfigurationField.Optional.NOT_OPTIONAL,
-                    TextField.Attribute.IS_PASSWORD));
-            cr.addField(new TextField(CK_KEY_PASSWORD,
-                    "Key Password",
-                    "",
-                    "-destkeypass argument in keytool",
-                    ConfigurationField.Optional.NOT_OPTIONAL,
-                    TextField.Attribute.IS_PASSWORD));
             cr.addField(new TextField(CK_BIND_IP,
                     "Bind IP Address",
                     "0.0.0.0",
@@ -189,10 +172,27 @@ public class BeatsTransport implements Transport {
                     ConfigurationField.Optional.NOT_OPTIONAL));
             cr.addField(new NumberField(CK_BIND_PORT,
                     "Port",
-                    5043,
+                    5044,
                     "Local port to listen for events",
                     ConfigurationField.Optional.NOT_OPTIONAL,
                     NumberField.Attribute.IS_PORT_NUMBER));
+            cr.addField(new TextField(CK_KEYSTORE_PATH,
+                    "Keystore Path",
+                    "",
+                    "Absolute path of JKS keystore",
+                    ConfigurationField.Optional.OPTIONAL));
+            cr.addField(new TextField(CK_KEYSTORE_PASSWORD,
+                    "Keystore Password",
+                    "",
+                    "-deststorepass argument in keytool",
+                    ConfigurationField.Optional.OPTIONAL,
+                    TextField.Attribute.IS_PASSWORD));
+            cr.addField(new TextField(CK_KEY_PASSWORD,
+                    "Key Password",
+                    "",
+                    "-destkeypass argument in keytool",
+                    ConfigurationField.Optional.OPTIONAL,
+                    TextField.Attribute.IS_PASSWORD));
             return cr;
         }
     }
