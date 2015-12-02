@@ -99,7 +99,9 @@ public class BeatsTransport implements Transport {
         if("filebeat".equals(beat)) {
             gelfMessage = parseFileBeat(lumberjackEvent);
         } else if("topbeat".equals(beat)) {
-
+            gelfMessage = parseTopBeat(lumberjackEvent);
+        } else if("packetbeat".equals(beat)) {
+            gelfMessage = parsePacketBeat(lumberjackEvent);
         }
         return gelfMessage;
     }
@@ -127,9 +129,7 @@ public class BeatsTransport implements Transport {
      *
      */
     private Map<String,Object> parseFileBeat(Event event) {
-        Map<String,Object> gelfMessage = new LinkedHashMap<>();
-        gelfMessage.put("version", "1.1");
-        gelfMessage.put("host",((Map<String,Object>)event.getEventData().get("beat")).get("hostname"));
+        Map<String,Object> gelfMessage = createGelfMessage(event);
         gelfMessage.put("file",event.getEventData().get("source"));
         gelfMessage.put("short_message", event.getEventData().get("message"));
         Map<String,Object> fields = (Map<String,Object>)event.getEventData().get("fields");
@@ -137,6 +137,81 @@ public class BeatsTransport implements Transport {
             gelfMessage.putAll(fields);
         }
         return gelfMessage;
+    }
+
+    private Map<String,Object> createGelfMessage(Event event) {
+        Map<String,Object> gelfMessage = new LinkedHashMap<>();
+        gelfMessage.put("version", "1.1");
+        gelfMessage.put("host",((Map<String,Object>)event.getEventData().get("beat")).get("hostname"));
+        return gelfMessage;
+    }
+
+    /**
+     * {
+     "@metadata":{
+     "beat":"topbeat",
+     "type":"process"
+     },
+     "@timestamp":"2015-11-30T18:34:33.217Z",
+     "beat":{
+     "hostname":"vagrant-ubuntu-trusty-64",
+     "name":"vagrant-ubuntu-trusty-64"
+     },
+     "count":1,
+     "proc":{
+     "cpu":{
+     "user":0,
+     "user_p":0,
+     "system":0,
+     "total":0,
+     "start_time":"12:03"
+     },
+     "mem":{
+     "size":0,
+     "rss":0,
+     "rss_p":0,
+     "share":0
+     },
+     "name":"kthreadd",
+     "pid":2,
+     "ppid":0,
+     "state":"sleeping"
+     },
+     "type":"process"
+     }
+     */
+    private Map<String,Object> parseTopBeat(Event event) {
+        Map<String,Object> gelfMessage = createGelfMessage(event);
+        flatten(event.getEventData(),gelfMessage,"topbeat");
+        gelfMessage.put("short_message","topbeat");
+        return gelfMessage;
+    }
+
+    private Map<String,Object> parsePacketBeat(Event event) {
+        Map<String,Object> gelfMessage = createGelfMessage(event);
+        flatten(event.getEventData(),gelfMessage,"packetbeat");
+        gelfMessage.put("short_message","packetbeat");
+        return gelfMessage;
+    }
+
+
+    private void flatten(Map<String,Object> originalMap, Map<String,Object> flattenedMap, String parentKey) {
+        for(Map.Entry<String,Object> entry : originalMap.entrySet()) {
+            Object value = entry.getValue();
+            String key = parentKey + "." + entry.getKey();
+            if(parentKey.isEmpty()) {
+                key = entry.getKey();
+            }
+            if(value instanceof Map) {
+                flatten(((Map<String,Object>)value),flattenedMap,key);
+            } else {
+                if(parentKey.isEmpty()) {
+                    flattenedMap.put(entry.getKey(), value);
+                } else {
+                    flattenedMap.put(key, value);
+                }
+            }
+        }
     }
 
 

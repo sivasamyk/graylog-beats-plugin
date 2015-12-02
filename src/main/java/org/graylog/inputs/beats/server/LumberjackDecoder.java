@@ -85,6 +85,7 @@ public class LumberjackDecoder extends FrameDecoder {
         if(LOGGER.isDebugEnabled()) {
             LOGGER.debug(new String(data));
         }
+        System.out.println(new String(data));
         Map<String, Object> map = objectMapper.readValue(data,new TypeReference<Map<String, Object>>(){});
         return new Event(map);
     }
