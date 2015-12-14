@@ -71,7 +71,7 @@ public class LumberjackDecoder extends FrameDecoder {
                 events = processCompressedFrame(channel, channelBuffer);
                 break;
             case FRAME_JSON:
-                events = Arrays.asList(processJsonFrame(channel,channelBuffer));
+                events = Collections.singletonList(processJsonFrame(channel, channelBuffer));
                 break;
         }
         return events;
@@ -85,7 +85,6 @@ public class LumberjackDecoder extends FrameDecoder {
         if(LOGGER.isDebugEnabled()) {
             LOGGER.debug(new String(data));
         }
-        System.out.println(new String(data));
         Map<String, Object> map = objectMapper.readValue(data,new TypeReference<Map<String, Object>>(){});
         return new Event(map);
     }

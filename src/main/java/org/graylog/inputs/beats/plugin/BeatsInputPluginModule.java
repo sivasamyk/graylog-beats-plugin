@@ -38,7 +38,7 @@ public class BeatsInputPluginModule extends PluginModule {
          *
          * addConfigBeans();
          */
-        installTransport(transportMapBinder(),"lumberjack-transport",BeatsTransport.class);
+        installTransport(transportMapBinder(),"beats-transport",BeatsTransport.class);
         installInput(inputsMapBinder(), BeatsInput.class, BeatsInput.Factory.class);
     }
 }
