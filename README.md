@@ -8,7 +8,7 @@ For more info on Elastic Beats platform visit [Beats product page] (https://www.
 How To
 ------
 
-* Download the plugin [jar] () and copy the jar to plugin directory in Graylog server installation
+* Download the plugin [jar] (https://github.com/sivasamyk/graylog-beats-plugin/releases/download/v1.0.0/graylog-input-beats-1.0.0.jar) and copy the jar to plugin directory in Graylog server installation
 
 * Restart Graylog Server
 
