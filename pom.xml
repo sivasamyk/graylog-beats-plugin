@@ -6,7 +6,7 @@
 
     <groupId>org.graylog.inputs.beats</groupId>
     <artifactId>graylog-input-beats</artifactId>
-    <version>1.0.0-rc1</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
 
     <name>${project.artifactId}</name>
