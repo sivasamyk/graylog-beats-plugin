@@ -3,6 +3,8 @@
 Graylog input plugin for Elastic beats shipper. Support for filebeat, packetbeat and topbeat.
 Tested with beats platform 1.0.0 GA.
 
+For more info on Elastic Beats platform visit [Beats product page] (https://www.elastic.co/products/beats)
+
 How To
 ------
 
