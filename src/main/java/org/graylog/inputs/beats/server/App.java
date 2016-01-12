@@ -8,12 +8,14 @@ import java.util.List;
  */
 public class App 
 {
+    static int count;
     public static void main( String[] args ) throws Exception
     {
         EventListener eventListener = new EventListener() {
             public void onEvents(List<Event> logEvents) {
                 for(Event event : logEvents) {
-                    //System.out.println(event.getEventData());
+                    System.out.println(event.getEventData());
+                    System.out.println(++count);
                 }
             }
         };

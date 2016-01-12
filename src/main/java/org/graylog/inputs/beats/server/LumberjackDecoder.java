@@ -24,8 +24,8 @@ import java.util.zip.InflaterInputStream;
  */
 public class LumberjackDecoder extends FrameDecoder {
 
-    private long nextAckSeqNum;
-    private long sequenceNum,prevSequenceNum;
+    private long windowSize;
+    private long sequenceNum;
     private static final Logger LOGGER = LoggerFactory.getLogger(LumberjackDecoder.class);
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -55,30 +55,34 @@ public class LumberjackDecoder extends FrameDecoder {
                 break;
             case FRAME_DATA: //'D'
                 events = Collections.singletonList(processDataFrame(channelBuffer));
-
-                //Handle sequence number roll-over. Send ack for prev seq num and start from 0
-                if(sequenceNum < prevSequenceNum)
-                {
-                    sendAck(channel,prevSequenceNum);
-                    nextAckSeqNum = 0;
-                }
-                //send ack
-                else if (sequenceNum == nextAckSeqNum) {
-                    sendAck(channel,sequenceNum);
-                }
+                checkSequenceAndSendAck(channel);
                 break;
             case FRAME_COMPRESSED: //'C'
                 events = processCompressedFrame(channel, channelBuffer);
                 break;
             case FRAME_JSON:
                 events = Collections.singletonList(processJsonFrame(channel, channelBuffer));
+                checkSequenceAndSendAck(channel);
+                break;
+            default:
+                LOGGER.warn("Cannot understand frame type :" + Character.getName(frameType));
                 break;
         }
         return events;
     }
 
+    private void checkSequenceAndSendAck(Channel channel) throws IOException {
+        //send ack
+        if (sequenceNum == windowSize) {
+            sendAck(channel,sequenceNum);
+        }
+    }
+
     private Event processJsonFrame(Channel channel, ChannelBuffer channelBuffer) throws IOException {
         sequenceNum = channelBuffer.readUnsignedInt();
+        if(LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Sequence number ->" + sequenceNum);
+        }
         int jsonLength = (int) channelBuffer.readUnsignedInt();
         byte[] data = new byte[jsonLength];
         channelBuffer.readBytes(data);
@@ -131,16 +135,14 @@ public class LumberjackDecoder extends FrameDecoder {
         if (channelBuffer.readableBytes() < 4) {
             channelBuffer.resetReaderIndex();
         } else {
-            long windowSize = channelBuffer.readUnsignedInt();
-            nextAckSeqNum = sequenceNum + windowSize;
+            windowSize = channelBuffer.readUnsignedInt();
             if(LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Window size ->" + windowSize + " next ack seq num " + nextAckSeqNum);
+                LOGGER.debug("Window size ->" + windowSize);
             }
         }
     }
 
     private Event processDataFrame(ChannelBuffer channelBuffer) {
-        prevSequenceNum = sequenceNum;
         sequenceNum = channelBuffer.readUnsignedInt();
         if(LOGGER.isDebugEnabled()) {
             LOGGER.debug("Sequence number ->" + sequenceNum);
@@ -173,7 +175,7 @@ public class LumberjackDecoder extends FrameDecoder {
             LOGGER.debug("Sending Ack for " + seqNum);
         }
         ChannelBuffer buffer = ChannelBuffers.buffer(6);
-        buffer.writeBytes(new byte[]{0x31, FRAME_ACK});
+        buffer.writeBytes(new byte[]{0x32, FRAME_ACK});
         buffer.writeInt((int) seqNum);
         ChannelFuture future = channel.write(buffer);
         future.awaitUninterruptibly();
@@ -182,7 +184,7 @@ public class LumberjackDecoder extends FrameDecoder {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
         super.exceptionCaught(ctx, e);
-        LOGGER.warn("Exception while process channel. So closing the channel " + ctx.getChannel(), e.getCause());
+        LOGGER.debug("Exception while process channel. So closing the channel " + ctx.getChannel(), e.getCause());
         e.getChannel().close();
     }
 }
