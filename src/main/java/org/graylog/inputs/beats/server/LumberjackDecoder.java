@@ -101,21 +101,18 @@ public class LumberjackDecoder extends FrameDecoder {
             } else {
                 byte[] data = new byte[(int) payloadLength];
                 channelBuffer.readBytes(data);
-
-                if (data.length == payloadLength) {
-                    InputStream in =
-                            new InflaterInputStream(new ByteArrayInputStream(data));
-                    ByteArrayOutputStream out = new ByteArrayOutputStream();
-                    byte[] buffer = new byte[1024];
-                    int len;
-                    while ((len = in.read(buffer)) > 0) {
-                        out.write(buffer, 0, len);
-                    }
-                    in.close();
-                    out.close();
-                    data = out.toByteArray();
-                    return processCompressedDataFrames(channel, ChannelBuffers.copiedBuffer(data));
+                InputStream in =
+                        new InflaterInputStream(new ByteArrayInputStream(data));
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                byte[] buffer = new byte[1024];
+                int len;
+                while ((len = in.read(buffer)) > 0) {
+                    out.write(buffer, 0, len);
                 }
+                in.close();
+                out.close();
+                data = out.toByteArray();
+                return processCompressedDataFrames(channel, ChannelBuffers.copiedBuffer(data));
             }
         } else {
             channelBuffer.resetReaderIndex();
